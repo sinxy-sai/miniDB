@@ -28,7 +28,14 @@ wsl -d Ubuntu
 
 ```bash
 sudo apt update
-sudo apt install build-essential
+sudo apt install ruby-full ruby-dev ruby-bundler build-essential
+```
+
+如果要运行测试，在项目目录中执行：
+
+```bash
+bundle config set --local path vendor/bundle
+bundle install
 ```
 
 ## 编译和运行
