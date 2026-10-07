@@ -56,6 +56,19 @@ jobs:
             previous_tag="(initial release)"
           fi
 
+          if [[ "$previous_tag" == "(initial release)" ]]; then
+            commit_range="$GITHUB_SHA"
+          else
+            commit_range="$previous_tag..$GITHUB_SHA"
+          fi
+
+          {
+            cat /tmp/generated-changelog.md
+            echo
+            echo "### Commit history"
+            git log --no-merges --reverse --format='- `%h` — %s' "$commit_range"
+          } > /tmp/complete-changelog.md
+
           release_status="Stable / production"
           if [[ "$GITHUB_REF_NAME" == *-* ]]; then
             release_status="Experimental / non-production"
@@ -68,7 +81,7 @@ jobs:
           from pathlib import Path
 
           template = Path('.github/RELEASE_TEMPLATE.md').read_text(encoding='utf-8')
-          changelog = Path('/tmp/generated-changelog.md').read_text(encoding='utf-8')
+          changelog = Path('/tmp/complete-changelog.md').read_text(encoding='utf-8')
 
           replacements = {
               '{{VERSION}}': os.environ['GITHUB_REF_NAME'],
