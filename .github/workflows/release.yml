@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-and-release:
+    name: Verify and publish release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Install build and test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential ruby-full ruby-dev ruby-bundler
+
+      - name: Install Ruby dependencies
+        run: |
+          bundle config set --local path vendor/bundle
+          bundle install
+
+      - name: Run test suite
+        run: make test
+
+      - name: Package source archive
+        run: |
+          archive="../miniDB-${GITHUB_REF_NAME}.tar.gz"
+          tar \
+            --exclude='./.git' \
+            --exclude='./vendor' \
+            --exclude='./db' \
+            --exclude='*.db' \
+            -czf "$archive" .
+          echo "ARCHIVE=$archive" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_args=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            release_args+=(--prerelease)
+          fi
+
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --generate-notes \
+            --title "miniDB $GITHUB_REF_NAME" \
+            "${release_args[@]}" \
+            "$ARCHIVE"

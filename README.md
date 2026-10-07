@@ -81,3 +81,22 @@ make test     # 运行测试
 ```
 
 如果使用 VS Code，可以安装 WSL 扩展，并通过命令面板执行 `WSL: Reopen Folder in WSL`，然后在 VS Code 的 Ubuntu 终端中运行上述命令。
+
+## 发布 Release
+
+本项目使用语义化版本号，并通过预发布后缀区分非生产版本：
+
+- `v0.1.0-alpha.1`：早期实验版本，功能可能变化
+- `v0.1.0-beta.1`：功能基本稳定，但仍不建议用于生产环境
+- `v0.1.0`：稳定版本
+
+发布流程由 GitHub Actions 自动完成。推送符合 `v*` 格式的标签后，Actions 会先安装依赖并运行 `make test`；测试通过后自动创建 GitHub Release，并上传源代码压缩包。带有 `-alpha` 或 `-beta` 后缀的版本会自动标记为预发布版本。
+
+例如，发布一个非生产版本：
+
+```bash
+git tag -a v0.1.0-alpha.1 -m "release: v0.1.0-alpha.1"
+git push origin v0.1.0-alpha.1
+```
+
+Release 描述模板见 [`RELEASE_TEMPLATE.md`](.github/RELEASE_TEMPLATE.md)。GitHub Actions 同时会根据提交和 Pull Request 自动生成 changelog；发布前应补充版本状态、测试结果、已知限制和致谢信息。
