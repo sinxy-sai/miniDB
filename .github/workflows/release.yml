@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Check out tagged source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install build and test dependencies
         run: |
@@ -33,6 +35,52 @@ jobs:
 
       - name: Run test suite
         run: make test
+
+      - name: Generate release notes from template
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST \
+            "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f "tag_name=$GITHUB_REF_NAME" \
+            -f "target_commitish=$GITHUB_SHA" \
+            > /tmp/generated-release-notes.json
+
+          jq -r '.body' /tmp/generated-release-notes.json \
+            > /tmp/generated-changelog.md
+
+          previous_tag="$(git tag --list 'v*' --sort=-version:refname \
+            | grep -Fxv "$GITHUB_REF_NAME" \
+            | head -n 1 || true)"
+          if [[ -z "$previous_tag" ]]; then
+            previous_tag="(initial release)"
+          fi
+
+          release_status="Stable / production"
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            release_status="Experimental / non-production"
+          fi
+
+          export PREVIOUS_TAG="$previous_tag"
+          export RELEASE_STATUS="$release_status"
+          python3 <<'PY'
+          import os
+          from pathlib import Path
+
+          template = Path('.github/RELEASE_TEMPLATE.md').read_text(encoding='utf-8')
+          changelog = Path('/tmp/generated-changelog.md').read_text(encoding='utf-8')
+
+          replacements = {
+              '{{VERSION}}': os.environ['GITHUB_REF_NAME'],
+              '{{RELEASE_STATUS}}': os.environ['RELEASE_STATUS'],
+              '{{PREVIOUS_TAG}}': os.environ['PREVIOUS_TAG'],
+              '{{GENERATED_CHANGELOG}}': changelog.rstrip(),
+          }
+          for placeholder, value in replacements.items():
+              template = template.replace(placeholder, value)
+
+          Path('/tmp/release-notes.md').write_text(template, encoding='utf-8')
+          PY
 
       - name: Package source archive
         run: |
@@ -57,7 +105,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
-            --generate-notes \
+            --notes-file /tmp/release-notes.md \
             --title "miniDB $GITHUB_REF_NAME" \
             "${release_args[@]}" \
             "$ARCHIVE"

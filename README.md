@@ -90,7 +90,7 @@ make test     # 运行测试
 - `v0.1.0-beta.1`：功能基本稳定，但仍不建议用于生产环境
 - `v0.1.0`：稳定版本
 
-发布流程由 GitHub Actions 自动完成。推送符合 `v*` 格式的标签后，Actions 会先安装依赖并运行 `make test`；测试通过后自动创建 GitHub Release，并上传源代码压缩包。带有 `-alpha` 或 `-beta` 后缀的版本会自动标记为预发布版本。
+发布流程由 GitHub Actions 自动完成。推送符合 `v*` 格式的标签后，Actions 会先安装依赖并运行 `make test`；测试通过后读取 Release 模板、生成 changelog、组合完整的 Release 正文，最后创建 GitHub Release 并上传源代码压缩包。带有 `-alpha` 或 `-beta` 后缀的版本会自动标记为预发布版本。
 
 例如，发布一个非生产版本：
 
@@ -99,4 +99,4 @@ git tag -a v0.1.0-alpha.1 -m "release: v0.1.0-alpha.1"
 git push origin v0.1.0-alpha.1
 ```
 
-Release 描述模板见 [`RELEASE_TEMPLATE.md`](.github/RELEASE_TEMPLATE.md)。GitHub Actions 同时会根据提交和 Pull Request 自动生成 changelog；发布前应补充版本状态、测试结果、已知限制和致谢信息。
+Release 描述模板见 [`RELEASE_TEMPLATE.md`](.github/RELEASE_TEMPLATE.md)。工作流会自动替换版本号、版本状态、提交范围和 changelog，不需要手动编辑 Release 正文。

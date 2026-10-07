@@ -1,47 +1,27 @@
 # miniDB {{VERSION}}
 
-> **Status:** Experimental / non-production
+> **Status:** {{RELEASE_STATUS}}
 
-## Overview
-
-Short summary of this release and the development milestone it represents.
-
-## Highlights
-
-- Main feature or milestone
-- Important behavior change
-- Documentation or test improvement
+This release was created automatically from the tagged source after the required verification steps passed.
 
 ## Changelog
 
-### Added
-
-- <!-- New features, commands, or capabilities. -->
-
-### Changed
-
-- <!-- Changes to existing behavior or implementation. -->
-
-### Fixed
-
-- <!-- Bug fixes and compatibility fixes. -->
+{{GENERATED_CHANGELOG}}
 
 ## Verification
 
 - `make db`
-- `make test` — <!-- result, for example: 13 examples, 0 failures -->
+- `make test` — passed in GitHub Actions
 
 ## Known limitations
 
 - This release is for learning and experimentation and is not production-ready.
-- <!-- Add release-specific limitations. -->
+- The SQL surface, durability guarantees, concurrency model, and recovery behavior remain intentionally limited.
 
 ## Commit range
-
-<!-- GitHub Actions generates the commit changelog automatically. For a manual release, record the range here. -->
 
 `{{PREVIOUS_TAG}}..{{VERSION}}`
 
 ## Credits
 
-This project is based on the [`cstack/db_tutorial`](https://github.com/cstack/db_tutorial) tutorial. Thanks to the original author for the clear explanation and implementation guidance.
+This project is based on the [`cstack/db_tutorial`](https://github.com/cstack/db_tutorial) tutorial. Thanks to the original author for the clear explanations and implementation guidance.
